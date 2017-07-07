@@ -1,3 +1,5 @@
+# coding: utf-8
+
 import pandas as pd
 import re
 
@@ -14,25 +16,42 @@ def length_checker(text):
     '''a function for checking if the length of text is more than
     10 characters and less than 500'''
     if len(text) < 10 or len(text) > 500:
-        print "Error: the length of description is not right"
+        return "Error: the length of description is not right"
 
 def url_checker(text):
     '''a function for checking if the text contains URL'''
     url_regex = re.compile("http|www.")
     if url_regex.search(text):
-        print "Error: the description contains URL"
+        return "Error: the description contains URL"
 
 def names_checker(text, name):
     '''a function for checking if the text contains the tool name'''
     name_regex = re.compile(name)
     if name_regex.search(text):
-        print "Error: the description contains a tool name"
+        return "Error: the description contains a tool name"
 
 def character_checker(text):
     '''a function for checking if the text contains unwanted characters'''
-    character_regex = re.compile("\\bold|\n|\r|\t")
-    if character_regex.search(text):
-        print "Error: the text contains unwanted symbols"
+    new_line_regex = re.compile("\n")
+    carriage_return_regex = re.compile("↵")
+    tab_regex = re.compile("\t")
+    escape_regex = re.compile("\e")
+    unknown_symbol_regex = re.compile("|�")
+    bullet_point_regex = re.compile("•")
+    error_list = []
+    if new_line_regex.search(text):
+        error_list.append("Error: the text contains new lines")
+    if carriage_return_regex.search(text):
+        error_list.append("Error: the text contains carriage returns")
+    if tab_regex.search(text):
+        error_list.append("Error: the text contains tabs")
+    # if escape_regex.search(text):
+    #     error_list.append("Error: the text contains escape charecters")
+    if bullet_point_regex.search(text):
+        error_list.append("Error: the text contains bullet points")
+    if unknown_symbol_regex.search(text):
+        error_list.append("Error: the text contains unknown symbols")
+    return error_list
 
 def checker(text, name=None, url_check=True, names_check=True,
             length_check=True, character_check=True):
@@ -45,36 +64,36 @@ def checker(text, name=None, url_check=True, names_check=True,
     10 characters and less than 500
     if character_check is False, it is not checked if the text contain unwanted characters'''
     name = "No name provided" if name is None else name
-    print name
-    if length_check==True:
-        length_checker(text)
-    if url_check==True:
-        url_checker(text)
-    if names_check==True:
-        if name is "No name provided":
+    error = []
+    if length_check:
+        error.append(length_checker(text))
+    if url_check:
+        error.append(url_checker(text))
+    if names_check:
+        if name == "No name provided":
             print "Error: no names provided. Names can't be checked"
         else:
-            names_checker(text, name)
-    if character_check==True:
-        character_checker(text)
+            error.append(names_checker(text, name))
+    if character_check:
+        error += character_checker(text)
+    error_dict = {name:error}
+    return error_dict
 
 
 def data_iterator(texts, names=None):
     '''a function for iteration over the data frame and
     applying checker function'''
-    names = "No names provided" if names is None else names
-    if names is not "No names provided":
+    if names is not None:
         if len(texts)==len(names):
             for i in range(len(texts)):
-                checker(texts[i], names[i])
+                print checker(texts[i], names[i])
         else:
-            print "The length of two lists is different"
+            raise Exception("The length of two lists is different")
     else:
         for i in range(len(texts)):
-            checker(texts[i])
+            print checker(texts[i])
 
 
-
-data_iterator(descriptions, tool_names)
-# data_iterator(descriptions)
+# print data_iterator(descriptions, tool_names)
+# print data_iterator(descriptions)
 
