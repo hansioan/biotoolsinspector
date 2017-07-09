@@ -35,7 +35,7 @@ def character_checker(text):
     new_line_regex = re.compile("\n")
     carriage_return_regex = re.compile("↵")
     tab_regex = re.compile("\t")
-    escape_regex = re.compile("\e")
+    # escape_regex = re.compile("\e")
     unknown_symbol_regex = re.compile("|�")
     bullet_point_regex = re.compile("•")
     error_list = []
@@ -77,7 +77,10 @@ def checker(text, name=None, url_check=True, names_check=True,
     if character_check:
         error += character_checker(text)
     error_dict = {name:error}
-    return error_dict
+    error_df = pd.DataFrame.from_dict(error_dict)
+    error_df.to_csv("Errors.csv", mode="a")
+    # return error_df
+
 
 
 def data_iterator(texts, names=None):
@@ -86,14 +89,14 @@ def data_iterator(texts, names=None):
     if names is not None:
         if len(texts)==len(names):
             for i in range(len(texts)):
-                print checker(texts[i], names[i])
+                checker(texts[i], names[i])
         else:
             raise Exception("The length of two lists is different")
     else:
         for i in range(len(texts)):
-            print checker(texts[i])
+            checker(texts[i])
 
 
-# print data_iterator(descriptions, tool_names)
+print data_iterator(descriptions, tool_names)
 # print data_iterator(descriptions)
 
