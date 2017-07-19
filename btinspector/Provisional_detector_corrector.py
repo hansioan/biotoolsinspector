@@ -150,6 +150,10 @@ def checker(text, name = None, dots_caps = True, last_space_check = True, space_
         if character_checker(text):
             error += character_checker(text)
 
+    # If no errors are reported, display an OK message
+    if error == []:
+        error.append("OK")
+
 
     return name, error, correction
 
