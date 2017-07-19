@@ -4,10 +4,10 @@ import csv
 import re
 
 # Collection of reporter functions
-def dots_caps_checker(text):
-    ''' This function checks if the text ends with a dot and/or is initial-capitalized '''
+def dot_checker(text):
+    ''' This function checks if the text ends with a dot '''
     if text[-1] != ".":
-        return "Error: the description needs fixing"
+        return "Error: the description does not end with a dot"
 
 def last_space_checker(text):
     ''' This function checks if the second last character of the text is a space '''
@@ -66,16 +66,16 @@ def character_checker(text):
 
 
 def fixer(text):
-    ''' This function returns a description with an ending dot if it does not have one '''
-    if text[-1] != ".":
+    ''' This function returns a capitalized description with an ending dot if it does not have one '''
+    if dot_checker(text):
         return text[0].capitalize() + text[1:] + "."
+
 
 def checker(text, name = None, dots_caps = True, last_space_check = True, space_check = True,
             length_check = True, url_check = True, names_check = True, character_check = True):
     ''' This function checks if the given text (tool description and tool name) is written according the requirements:
 
-    If dot_check is False, the text is not checked if it has an ending dot
-    If capitalize_check is False, the text is not checked if its first character is capitalized
+    If dots_caps is False, the text is not checked if it has an ending dot nor fixed
     If last_space_check is False, the text is not checked if its second last character is a space
     If space_check is False, the text is not checked if it has a space in it
     If length_check is False, the text is not checked if its length is out of limits
@@ -85,30 +85,44 @@ def checker(text, name = None, dots_caps = True, last_space_check = True, space_
 
     name = "No name provided" if name is None else name
 
+    # List of every errors in a description
     error = []
+
+    # Corrected description if it misses a dot and/or a capitalized initial
     report = 0
 
+    # If the condition is set to True in the main function, it checks that condition in the description,
+    # adding the error report (if exists) to a list and outputting a corrected description
     if dots_caps:
-        error.append(dots_caps_checker(text))
-        report = fixer(text)
+        if dot_checker(text):
+            error.append(dot_checker(text))
+            report = fixer(text)
 
     if last_space_check:
-        error.append(last_space_checker(text))
+        if last_space_checker(text):
+            error.append(last_space_checker(text))
+
     if space_check:
-        error.append(space_checker(text))
+        if space_checker(text):
+            error.append(space_checker(text))
+
     if length_check:
-        error.append(length_checker(text))
+        if length_checker(text):
+            error.append(length_checker(text))
+
     if url_check:
-        error.append(url_checker(text))
+        if url_checker(text):
+            error.append(url_checker(text))
 
     if names_check:
         if name == "No name provided":
             print "Error: no names provided. Names cannot be checked"
-        else:
+        elif names_checker(text, name):
             error.append(names_checker(text, name))
 
     if character_check:
-        error += character_checker(text)
+        if character_checker(text):
+            error += character_checker(text)
 
 
     return name, error, report
@@ -119,8 +133,10 @@ with open("/home/juanma/Downloads/curation.tsv", "rb") as tsvin:
         tsvin = csv.reader(tsvin, delimiter="\t")
         tsvout = csv.writer(tsvout, delimiter="\t")
 
+        # Iteration over all the tools in the input tsv
         for row in tsvin:
             tool = row[0]
             description = row[1]
 
+            # Applying the checker function to every tool
             tsvout.writerow(checker(name = tool, text = description))
