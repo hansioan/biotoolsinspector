@@ -9,6 +9,11 @@ def dot_checker(text):
     if text[-1] != ".":
         return "Error: the description does not end with a dot"
 
+def capitalize_checker(text):
+    ''' This function checks if the initial letter of the text is capitalized '''
+    if text[0].islower():
+        return "Error: the description initial letter is not capitalized"
+
 def last_space_checker(text):
     ''' This function checks if the second last character of the text is a space '''
     if text[-2] == (" "):
@@ -64,18 +69,30 @@ def character_checker(text):
 
     return error_list
 
-
-def fixer(text):
-    ''' This function returns a capitalized description with an ending dot if it does not have one '''
+# Collection of fixer functions
+def dot_fixer(text):
+    ''' This function calls dot_checker and returns a description with an ending dot if condition = TRUE '''
     if dot_checker(text):
+        return text + "."
+
+def capitalize_fixer(text):
+    ''' This function calls capitalize_checker and returns an initial-capitalized description if condition = TRUE '''
+    if capitalize_checker(text):
+        return text[0].capitalize() + text[1:]
+
+def dot_capitalize_fixer(text):
+    ''' This function calls dot_checker and capitalize_checker and returns an initial-capitalized and ending dot
+                                description if both conditions = TRUE '''
+    if dot_checker(text) and capitalize_checker(text):
         return text[0].capitalize() + text[1:] + "."
+
 
 
 def checker(text, name = None, dots_caps = True, last_space_check = True, space_check = True,
             length_check = True, url_check = True, names_check = True, character_check = True):
     ''' This function checks if the given text (tool description and tool name) is written according the requirements:
 
-    If dots_caps is False, the text is not checked if it has an ending dot nor fixed
+    If dots_caps is False, the text is not checked /nor fixed if it has an ending dot and/or a capitalized initial
     If last_space_check is False, the text is not checked if its second last character is a space
     If space_check is False, the text is not checked if it has a space in it
     If length_check is False, the text is not checked if its length is out of limits
@@ -89,14 +106,23 @@ def checker(text, name = None, dots_caps = True, last_space_check = True, space_
     error = []
 
     # Corrected description if it misses a dot and/or a capitalized initial
-    report = 0
+    correction = 0
 
     # If the condition is set to True in the main function, it checks that condition in the description,
     # adding the error report (if exists) to a list and outputting a corrected description
     if dots_caps:
-        if dot_checker(text):
+        if dot_checker(text) and capitalize_checker(text):
+            error.append("Error: the description does not end with a dot; Error: the description initial letter is not capitalized")
+            correction = dot_capitalize_fixer(text)
+
+        elif dot_checker(text):
             error.append(dot_checker(text))
-            report = fixer(text)
+            correction = dot_fixer(text)
+
+        elif capitalize_checker(text):
+            error.append(capitalize_checker(text))
+            correction = capitalize_fixer(text)
+
 
     if last_space_check:
         if last_space_checker(text):
@@ -125,7 +151,7 @@ def checker(text, name = None, dots_caps = True, last_space_check = True, space_
             error += character_checker(text)
 
 
-    return name, error, report
+    return name, error, correction
 
 
 with open("/home/juanma/Downloads/curation.tsv", "rb") as tsvin:
