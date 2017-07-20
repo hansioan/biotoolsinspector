@@ -1,35 +1,38 @@
 # coding: utf-8
 
-import csv
 import re
+import pandas as pd
 
-# Collection of reporter functions
+# reading in the data as a data frame
+data = pd.read_table("problematic_descriptions_migle.tsv")
+
+# storing only the tool description column
+descriptions = data.Capitalized_dotted_descriptions
+
+# storing only the tool name column
+tool_names = data.tool_name
+
+
 def dot_checker(text):
     ''' This function checks if the text ends with a dot '''
-    if text[-1] != ".":
+    if not text.endswith("."):
         return "Error: the description does not end with a dot"
+    elif text.endswith(" .") or text.endswith(".."):
+        return "Error: the description does not end properly"
 
 def capitalize_checker(text):
     ''' This function checks if the initial letter of the text is capitalized '''
     if text[0].islower():
         return "Error: the description initial letter is not capitalized"
 
-def last_space_checker(text):
-    ''' This function checks if the second last character of the text is a space '''
-    if text[-2] == (" "):
-        return "Error: the description previous last character is a space"
-
-def space_checker(text):
-    ''' This function checks that the text has at least one space in it '''
-    if not (" ") in text:
-        return "Error: the description is a single word"
-
 def length_checker(text):
     ''' This function checks if the length of the text is less than 10 or more than 500 characters '''
     if len(text) < 10:
-        return "Error: the length of the description is too short"
-    elif len(text) > 500:
-        return "Error: the length of the description is too long"
+        return "Error: the length of description is shorter than 10 characters"
+    if len(text) > 500:
+        return "Error: the length of description is longer than 500 characters"
+    if len(text) >= 10 and len(text) <= 500 and " " not in text:
+        return "Error: the description contains only one word"
 
 def url_checker(text):
     ''' This function checks if the text contains an URL '''
@@ -39,7 +42,7 @@ def url_checker(text):
 
 def names_checker(text, name):
     ''' This function checks if the text contains the tool name '''
-    name_regex = re.compile(name)
+    name_regex = re.compile(name, re.IGNORECASE)
     if name_regex.search(text):
         return "Error: the description contains a tool name"
 
@@ -69,104 +72,121 @@ def character_checker(text):
 
     return error_list
 
-# Collection of fixer functions
 def dot_fixer(text):
-    ''' This function calls dot_checker and returns a description with an ending dot if condition = TRUE '''
+    ''' This function calls dot_checker and returns a description with an ending dot if condition is TRUE '''
     if dot_checker(text):
-        return text + "."
+        if text.endswith(" .") or text.endswith(".."):
+            return text.replace("..", ".").replace(" .", ".")
+        else:
+            return text + "."
 
 def capitalize_fixer(text):
-    ''' This function calls capitalize_checker and returns an initial-capitalized description if condition = TRUE '''
+    ''' This function calls capitalize_checker and returns an initial-capitalized description if condition is TRUE '''
     if capitalize_checker(text):
-        return text[0].capitalize() + text[1:]
+        return text[0].upper() + text[1:]
 
 def dot_capitalize_fixer(text):
     ''' This function calls dot_checker and capitalize_checker and returns an initial-capitalized and ending dot
-                                description if both conditions = TRUE '''
+                                description if both conditions are TRUE '''
     if dot_checker(text) and capitalize_checker(text):
-        return text[0].capitalize() + text[1:] + "."
+        if text.endswith(" .") or text.endswith(".."):
+            return text[0].upper() + text[1:].replace("..", ".").replace(" .", ".")
+        else:
+            return  text[0].upper() + text[1:] + "."
 
 
-
-def checker(text, name = None, dots_caps = True, last_space_check = True, space_check = True,
-            length_check = True, url_check = True, names_check = True, character_check = True):
+def checker(text, name = None, dots_caps = True, length_check = True, url_check = True,
+            names_check = True, character_check = True):
     ''' This function checks if the given text (tool description and tool name) is written according the requirements:
 
     If dots_caps is False, the text is not checked /nor fixed if it has an ending dot and/or a capitalized initial
-    If last_space_check is False, the text is not checked if its second last character is a space
-    If space_check is False, the text is not checked if it has a space in it
-    If length_check is False, the text is not checked if its length is out of limits
+    If length_check is False, the text is not checked if its length is out of limits and the descriptions
+    is made of more than one word
     If url_check is False, the text is not checked if it contains an URL
     If names_check is False, the text is not checked if it contains a tool name
     If character_check is False, the text is not checked if it contains unwanted characters '''
 
     name = "No name provided" if name is None else name
-
     # List of every errors in a description
     error = []
-
-    # Corrected description if it misses a dot and/or a capitalized initial
-    correction = 0
-
-    # If the condition is set to True in the main function, it checks that condition in the description,
-    # adding the error report (if exists) to a list and outputting a corrected description
     if dots_caps:
-        if dot_checker(text) and capitalize_checker(text):
-            error.append("Error: the description does not end with a dot; Error: the description initial letter is not capitalized")
-            correction = dot_capitalize_fixer(text)
-
-        elif dot_checker(text):
+        if dot_checker(text):
             error.append(dot_checker(text))
-            correction = dot_fixer(text)
-
-        elif capitalize_checker(text):
+            text = dot_fixer(text)
+        if capitalize_checker(text):
             error.append(capitalize_checker(text))
-            correction = capitalize_fixer(text)
-
-
-    if last_space_check:
-        if last_space_checker(text):
-            error.append(last_space_checker(text))
-
-    if space_check:
-        if space_checker(text):
-            error.append(space_checker(text))
-
+            text = capitalize_fixer(text)
     if length_check:
         if length_checker(text):
             error.append(length_checker(text))
-
     if url_check:
         if url_checker(text):
             error.append(url_checker(text))
-
     if names_check:
         if name == "No name provided":
             print "Error: no names provided. Names cannot be checked"
-        elif names_checker(text, name):
+        else:
             error.append(names_checker(text, name))
-
     if character_check:
-        if character_checker(text):
-            error += character_checker(text)
-
+        error += character_checker(text)
     # If no errors are reported, display an OK message
-    if error == []:
-        error.append("OK")
+    if error == [None]:
+        error == "OK"
+    return name, error, text
+    # error_dict = {name: error}
+    # return error_dict
 
+def data_iterator(texts, names=None, dot_caps_checking=True, url_checking=True, names_checking=True,
+            length_checking=True, character_checking=True, to_file=True):
+    '''This function iterates over the data frame/list/etc. and
+    applies the checker function
 
-    return name, error, correction
+    If dots_caps_cheking is False, the text is not checked /nor fixed if it has an ending dot and/or a capitalized initial
+    If length_checking is False, the text is not checked if its length is out of limits and the descriptions
+    is made of more than one word
+    If url_checkomg is False, the text is not checked if it contains an URL
+    If names_checking is False, the text is not checked if it contains a tool name
+    If character_checking is False, the text is not checked if it contains unwanted characters
+    If to_file is False, the output is not written to the file and just returned as a list of tuples'''
+    error_list = []
+    # checking if the names are given to the function
+    if names is not None:
+        # checking if the length of text list and name list is the same
+        # if not, an error is raised
+        if len(texts)==len(names):
+            # iterating over the text list and applying checker function
+            for i in range(len(texts)):
+                checker_results = checker(texts[i], names[i], dots_caps=dot_caps_checking, url_check=url_checking,
+                              names_check=names_checking, length_check=length_checking,
+                              character_check=character_checking)
+                # adding the checker function results from the dictionary to the list
+                error_list += [checker_results]
+            # creating a dataframe from a full list of checker function results from all the items
+            error_df = pd.DataFrame(error_list, columns=["Name", "Error", "Fixed capitalized/dotted description"])
+            # if to_file is True, results are written to the file
+            if to_file:
+                error_df.to_csv("Errors.csv")
+            # othewise, results are returned as a list of tuples with
+            # the tool name and errors which occurred
+            else:
+                return error_df
+        else:
+            raise Exception("The length of two lists is different")
+    # if names are not provided
+    else:
+        # iterating over the text list and applying checker function
+        for i in range(len(texts)):
+            checker_results = checker(texts[i], dots_caps=dot_caps_checking, url_check=url_checking,
+                          names_check=names_checking, length_check=length_checking,
+                          character_check=character_checking)
+            # adding the checker function results from the dictionary to the list
+            error_list += [checker_results]
+        # creating a dataframe from a full list of checker function results from all the items
+        error_df = pd.DataFrame(error_list, columns=["Name", "Error", "Fixed capitalized/dotted description"])
+        # if to_file is True, results are written to the file
+        if to_file:
+            error_df.to_csv("Errors_no_names.csv")
+        # othewise, results are returned as a list of tuples with the errors which occurred
+        else:
+            return error_df
 
-
-with open("/home/juanma/Downloads/curation.tsv", "rb") as tsvin:
-    with open("/home/juanma/Downloads/mergetest.tsv", "wb") as tsvout:
-        tsvin = csv.reader(tsvin, delimiter="\t")
-        tsvout = csv.writer(tsvout, delimiter="\t")
-
-        # Iteration over all the tools in the input tsv
-        for row in tsvin:
-            tool = row[0]
-            description = row[1]
-
-            # Applying the checker function to every tool
-            tsvout.writerow(checker(name = tool, text = description))
