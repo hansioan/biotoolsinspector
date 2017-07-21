@@ -131,7 +131,9 @@ def checker(text, name = None, dots_caps = True, length_check = True, url_check 
         error += character_checker(text)
     # If no errors are reported, display an OK message
     if error == [None]:
-        error == "OK"
+        error = ["No errors found"]
+    if None in error:
+        error.remove(None)
     return name, error, text
     # error_dict = {name: error}
     # return error_dict
@@ -189,4 +191,3 @@ def data_iterator(texts, names=None, dot_caps_checking=True, url_checking=True, 
         # othewise, results are returned as a list of tuples with the errors which occurred
         else:
             return error_df
-
