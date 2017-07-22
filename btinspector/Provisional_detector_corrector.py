@@ -50,6 +50,10 @@ def names_checker(text, name):
         name = name.replace("(", "\(")
     if ")" in name:
         name = name.replace(")", "\)")
+    if "[" in name:
+        name = name.replace("[", "\[")
+    if "]" in name:
+        name = name.replace("]", "\]")
     name_regex = re.compile(name, re.IGNORECASE)
     if name_regex.search(text):
         return "Error: the description contains a tool name"
