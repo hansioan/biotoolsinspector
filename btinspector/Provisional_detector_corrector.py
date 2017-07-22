@@ -7,7 +7,7 @@ import pandas as pd
 data = pd.read_table("problematic_descriptions_migle.tsv")
 
 # storing only the tool description column
-descriptions = data.Capitalized_dotted_descriptions
+descriptions = data.tool_description
 
 # storing only the tool name column
 tool_names = data.tool_name
@@ -42,6 +42,14 @@ def url_checker(text):
 
 def names_checker(text, name):
     ''' This function checks if the text contains the tool name '''
+    if "+" in name:
+        name = name.replace("+", "\+")
+    if "*" in name:
+        name = name.replace("*", "\*")
+    if "(" in name:
+        name = name.replace("(", "\(")
+    if ")" in name:
+        name = name.replace(")", "\)")
     name_regex = re.compile(name, re.IGNORECASE)
     if name_regex.search(text):
         return "Error: the description contains a tool name"
@@ -85,16 +93,6 @@ def capitalize_fixer(text):
     if capitalize_checker(text):
         return text[0].upper() + text[1:]
 
-def dot_capitalize_fixer(text):
-    ''' This function calls dot_checker and capitalize_checker and returns an initial-capitalized and ending dot
-                                description if both conditions are TRUE '''
-    if dot_checker(text) and capitalize_checker(text):
-        if text.endswith(" .") or text.endswith(".."):
-            return text[0].upper() + text[1:].replace("..", ".").replace(" .", ".")
-        else:
-            return  text[0].upper() + text[1:] + "."
-
-
 def checker(text, name = None, dots_caps = True, length_check = True, url_check = True,
             names_check = True, character_check = True):
     ''' This function checks if the given text (tool description and tool name) is written according the requirements:
@@ -135,8 +133,7 @@ def checker(text, name = None, dots_caps = True, length_check = True, url_check 
     if None in error:
         error.remove(None)
     return name, error, text
-    # error_dict = {name: error}
-    # return error_dict
+
 
 def data_iterator(texts, names=None, dot_caps_checking=True, url_checking=True, names_checking=True,
             length_checking=True, character_checking=True, to_file=True):
@@ -191,3 +188,6 @@ def data_iterator(texts, names=None, dot_caps_checking=True, url_checking=True, 
         # othewise, results are returned as a list of tuples with the errors which occurred
         else:
             return error_df
+
+
+data_iterator(descriptions,tool_names)
