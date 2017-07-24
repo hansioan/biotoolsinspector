@@ -17,7 +17,7 @@ def dot_checker(text):
     ''' This function checks if the text ends with a dot '''
     if not text.endswith("."):
         return "Error: the description does not end with a dot"
-    elif text.endswith(" .") or text.endswith(".."):
+    elif text.endswith(" .") or text.endswith("..") or text.endswith(". "):
         return "Error: the description does not end properly"
 
 def capitalize_checker(text):
@@ -87,8 +87,8 @@ def character_checker(text):
 def dot_fixer(text):
     ''' This function calls dot_checker and returns a description with an ending dot if condition is TRUE '''
     if dot_checker(text):
-        if text.endswith(" .") or text.endswith(".."):
-            return text.replace("..", ".").replace(" .", ".")
+        if text.endswith(" .") or text.endswith("..") or text.endswith(". "):
+            return text.replace("..", ".").replace(" .", ".").replace(". ", ".")
         else:
             return text + "."
 
@@ -194,4 +194,4 @@ def data_iterator(texts, names=None, dot_caps_checking=True, url_checking=True, 
             return error_df
 
 
-data_iterator(descriptions,tool_names)
+# data_iterator(descriptions,tool_names)
