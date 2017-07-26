@@ -16,29 +16,29 @@ tool_names = data.tool_name
 def dot_checker(text):
     ''' This function checks if the text ends with a dot '''
     if not text.endswith("."):
-        return "Error: the description does not end with a dot"
+        return "Warning: the description does not end with a dot"
     elif text.endswith(" .") or text.endswith("..") or text.endswith(". "):
-        return "Error: the description does not end properly"
+        return "Warning: the description does not end properly"
 
 def capitalize_checker(text):
     ''' This function checks if the initial letter of the text is capitalized '''
     if text[0].islower():
-        return "Error: the description initial letter is not capitalized"
+        return "Warning: the description initial letter is not capitalized"
 
 def length_checker(text):
     ''' This function checks if the length of the text is less than 10 or more than 500 characters '''
     if len(text) < 10:
-        return "Error: the length of description is shorter than 10 characters"
+        return "Warning: the length of description is shorter than 10 characters"
     if len(text) > 500:
-        return "Error: the length of description is longer than 500 characters"
+        return "Warning: the length of description is longer than 500 characters"
     if len(text) >= 10 and len(text) <= 500 and " " not in text:
-        return "Error: the description contains only one word"
+        return "Warning: the description contains only one word"
 
 def url_checker(text):
     ''' This function checks if the text contains an URL '''
     url_regex = re.compile("http|www.")
     if url_regex.search(text):
-        return "Error: the description contains an URL"
+        return "Warning: the description contains an URL"
 
 def names_checker(text, name):
     ''' This function checks if the text contains the tool name '''
@@ -56,7 +56,7 @@ def names_checker(text, name):
         name = name.replace("]", "\]")
     name_regex = re.compile(name, re.IGNORECASE)
     if name_regex.search(text):
-        return "Error: the description contains a tool name"
+        return "Error: the description may contain the tool name"
 
 def character_checker(text):
     ''' This function checks if the text contains some unwanted characters '''
@@ -66,21 +66,22 @@ def character_checker(text):
     escape_regex = re.compile("\\bold")
     bullet_point_regex = re.compile("•")
     unknown_symbol_regex = re.compile("|�")
+    # check if all the characters really work
 
     error_list = []
 
     if new_line_regex.search(text):
-        error_list.append("Error: the description contains new lines")
+        error_list.append("Warning: the description contains new lines")
     if carriage_return_regex.search(text):
-        error_list.append("Error: the description contains carriage returns")
+        error_list.append("Warning: the description contains carriage returns")
     if tab_regex.search(text):
-        error_list.append("Error: the description contains tabs")
+        error_list.append("Warning: the description contains tabs")
     if escape_regex.search(text):
-        error_list.append("Error: the description contains escape characters")
+        error_list.append("Warning: the description contains escape characters")
     if bullet_point_regex.search(text):
-        error_list.append("Error: the description contains bullet points")
+        error_list.append("Warning: the description contains bullet points")
     if unknown_symbol_regex.search(text):
-        error_list.append("Error: the description contains unknown symbols")
+        error_list.append("Warning: the description contains unknown symbols")
 
     return error_list
 
@@ -126,14 +127,12 @@ def checker(text, name = None, dots_caps = True, length_check = True, url_check 
             error.append(url_checker(text))
     if names_check:
         if name == "No name provided":
-            print "Error: no names provided. Names cannot be checked"
+            print "Warning: no names provided. Names cannot be checked"
         else:
             error.append(names_checker(text, name))
     if character_check:
         error += character_checker(text)
-    # If no errors are reported, display an OK message
-    if error == [None]:
-        error = ["No errors found"]
+    # If no errors are reported, the empty list is returned
     if None in error:
         error.remove(None)
     return name, error, text
@@ -165,10 +164,10 @@ def data_iterator(texts, names=None, dot_caps_checking=True, url_checking=True, 
                 # adding the checker function results from the dictionary to the list
                 error_list += [checker_results]
             # creating a dataframe from a full list of checker function results from all the items
-            error_df = pd.DataFrame(error_list, columns=["Name", "Error", "Fixed capitalized/dotted description"])
+            error_df = pd.DataFrame(error_list, columns=["Name", "Warning", "Fixed capitalized/dotted description"])
             # if to_file is True, results are written to the file
             if to_file:
-                error_df.to_csv("Errors.csv")
+                error_df.to_csv("Warnings.csv")
             # othewise, results are returned as a list of tuples with
             # the tool name and errors which occurred
             else:
@@ -185,13 +184,11 @@ def data_iterator(texts, names=None, dot_caps_checking=True, url_checking=True, 
             # adding the checker function results from the dictionary to the list
             error_list += [checker_results]
         # creating a dataframe from a full list of checker function results from all the items
-        error_df = pd.DataFrame(error_list, columns=["Name", "Error", "Fixed capitalized/dotted description"])
+        error_df = pd.DataFrame(error_list, columns=["Name", "Warning", "Fixed capitalized/dotted description"])
         # if to_file is True, results are written to the file
         if to_file:
-            error_df.to_csv("Errors_no_names.csv")
+            error_df.to_csv("Warnings_no_names.csv")
         # othewise, results are returned as a list of tuples with the errors which occurred
         else:
             return error_df
 
-
-# data_iterator(descriptions,tool_names)
