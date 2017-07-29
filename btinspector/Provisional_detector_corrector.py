@@ -6,6 +6,7 @@ import pandas as pd
 # reading in the data as a data frame
 data = pd.read_table("problematic_descriptions_migle.tsv")
 
+
 # storing only the tool description column
 descriptions = data.tool_description
 
@@ -56,14 +57,13 @@ def names_checker(text, name):
         name = name.replace("]", "\]")
     name_regex = re.compile(name, re.IGNORECASE)
     if name_regex.search(text):
-        return "Error: the description may contain the tool name"
+        return "Warning: the description may contain the tool name"
 
 def character_checker(text):
     ''' This function checks if the text contains some unwanted characters '''
     new_line_regex = re.compile("\n")
     carriage_return_regex = re.compile("↵")
     tab_regex = re.compile("\t")
-    escape_regex = re.compile("\\bold")
     bullet_point_regex = re.compile("•")
     unknown_symbol_regex = re.compile("|�")
     # check if all the characters really work
@@ -76,8 +76,6 @@ def character_checker(text):
         error_list.append("Warning: the description contains carriage returns")
     if tab_regex.search(text):
         error_list.append("Warning: the description contains tabs")
-    if escape_regex.search(text):
-        error_list.append("Warning: the description contains escape characters")
     if bullet_point_regex.search(text):
         error_list.append("Warning: the description contains bullet points")
     if unknown_symbol_regex.search(text):
