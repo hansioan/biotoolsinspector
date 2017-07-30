@@ -66,7 +66,6 @@ def character_checker(text):
     tab_regex = re.compile("\t")
     bullet_point_regex = re.compile("•")
     unknown_symbol_regex = re.compile("|�")
-    # check if all the characters really work
 
     error_list = []
 
@@ -96,8 +95,32 @@ def capitalize_fixer(text):
     if capitalize_checker(text):
         return text[0].upper() + text[1:]
 
+def character_fixer(text):
+    ''' This function checks if the text contains some unwanted characters and removes them if needed'''
+    new_line_regex = re.compile("\n")
+    carriage_return_regex = re.compile("↵")
+    tab_regex = re.compile("\t")
+    bullet_point_regex = re.compile("•")
+    unknown_symbol_regex = re.compile("|�")
+
+    error_list = []
+
+    if new_line_regex.search(text):
+        text = text.replace("\n", " ")
+    if carriage_return_regex.search(text):
+        text = text.replace("↵", " ").replace("  ", " ")
+    if tab_regex.search(text):
+        text = text.replace("\t", " ").replace("  "," ")
+    if bullet_point_regex.search(text):
+        text = text.replace("•", ", ").replace("  "," ")
+    if unknown_symbol_regex.search(text):
+        text = text.replace("", "").replace("�", "")
+
+    return text
+
+
 def checker(text, name = None, dots_caps = True, length_check = True, url_check = True,
-            names_check = True, character_check = True):
+            names_check = True, character_check = True, character_fix=True):
     ''' This function checks if the given text (tool description and tool name) is written according the requirements:
 
     If dots_caps is False, the text is not checked /nor fixed if it has an ending dot and/or a capitalized initial
@@ -130,6 +153,8 @@ def checker(text, name = None, dots_caps = True, length_check = True, url_check 
             error.append(names_checker(text, name))
     if character_check:
         error += character_checker(text)
+    if character_fix:
+        text = character_fixer(text)
     # If no errors are reported, the empty list is returned
     if None in error:
         error.remove(None)
@@ -137,7 +162,7 @@ def checker(text, name = None, dots_caps = True, length_check = True, url_check 
 
 
 def data_iterator(texts, names=None, dot_caps_checking=True, url_checking=True, names_checking=True,
-            length_checking=True, character_checking=True, to_file=True):
+            length_checking=True, character_checking=True, character_fixing=True, to_file=True):
     '''This function iterates over the data frame/list/etc. and
     applies the checker function
 
@@ -158,7 +183,7 @@ def data_iterator(texts, names=None, dot_caps_checking=True, url_checking=True, 
             for i in range(len(texts)):
                 checker_results = checker(texts[i], names[i], dots_caps=dot_caps_checking, url_check=url_checking,
                               names_check=names_checking, length_check=length_checking,
-                              character_check=character_checking)
+                              character_check=character_checking, character_fix=character_fixing)
                 # adding the checker function results from the dictionary to the list
                 error_list += [checker_results]
             # creating a dataframe from a full list of checker function results from all the items
@@ -178,7 +203,7 @@ def data_iterator(texts, names=None, dot_caps_checking=True, url_checking=True, 
         for i in range(len(texts)):
             checker_results = checker(texts[i], dots_caps=dot_caps_checking, url_check=url_checking,
                           names_check=names_checking, length_check=length_checking,
-                          character_check=character_checking)
+                          character_check=character_checking, character_fix=character_fixing)
             # adding the checker function results from the dictionary to the list
             error_list += [checker_results]
         # creating a dataframe from a full list of checker function results from all the items
@@ -189,4 +214,3 @@ def data_iterator(texts, names=None, dot_caps_checking=True, url_checking=True, 
         # othewise, results are returned as a list of tuples with the errors which occurred
         else:
             return error_df
-
