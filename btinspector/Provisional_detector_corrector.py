@@ -162,7 +162,7 @@ def checker(text, name = None, dots_caps = True, length_check = True, url_check 
 
 
 def data_iterator(texts, names=None, dot_caps_checking=True, url_checking=True, names_checking=True,
-            length_checking=True, character_checking=True, character_fixing=True, to_file=True):
+            length_checking=True, character_checking=True, character_fixing=True, to_file=True, file_name="Warnings"):
     '''This function iterates over the data frame/list/etc. and
     applies the checker function
 
@@ -190,7 +190,7 @@ def data_iterator(texts, names=None, dot_caps_checking=True, url_checking=True, 
             error_df = pd.DataFrame(error_list, columns=["Name", "Warning", "Fixed capitalized/dotted description"])
             # if to_file is True, results are written to the file
             if to_file:
-                error_df.to_csv("Warnings.csv")
+                error_df.to_csv(file_name+".csv")
             # othewise, results are returned as a list of tuples with
             # the tool name and errors which occurred
             else:
@@ -210,7 +210,9 @@ def data_iterator(texts, names=None, dot_caps_checking=True, url_checking=True, 
         error_df = pd.DataFrame(error_list, columns=["Name", "Warning", "Fixed capitalized/dotted description"])
         # if to_file is True, results are written to the file
         if to_file:
-            error_df.to_csv("Warnings_no_names.csv")
+            error_df.to_csv(file_name+"_no_name.csv")
         # othewise, results are returned as a list of tuples with the errors which occurred
         else:
             return error_df
+
+
