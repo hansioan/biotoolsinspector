@@ -1,17 +1,17 @@
 # coding: utf-8
-
+import sys
 import re
 import pandas as pd
 
 # reading in the data as a data frame
-data = pd.read_table("problematic_descriptions_migle.tsv")
+# data = pd.read_table("problematic_descriptions_migle.tsv")
 
 
 # storing only the tool description column
-descriptions = data.tool_description
+# descriptions = data.tool_description
 
 # storing only the tool name column
-tool_names = data.tool_name
+# tool_names = data.tool_name
 
 
 def dot_checker(text):
@@ -216,3 +216,16 @@ def data_iterator(texts, names=None, dot_caps_checking=True, url_checking=True, 
             return error_df
 
 
+# print data_iterator(descriptions,tool_names, to_file=True, file_name="something")
+
+if __name__ == "__main__":
+    descriptions_file = open(sys.argv[1], "r")
+    names_file = open(sys.argv[2], "r")
+    descriptions = descriptions_file.readlines()
+    descriptions = [description.rstrip("\n") for description in descriptions]
+    descriptions = [description.decode("UTF-8") for description in descriptions]
+    names = names_file.readlines()
+    names =[name.rstrip("\n") for name in names]
+    names_file.close()
+    descriptions_file.close()
+    data_iterator(descriptions, names)
