@@ -58,7 +58,5 @@ optional arguments:
                         Choose the output file name if the argument -to-file
                         is True. Default is "Warnings".
 
-'''
-
 
 
